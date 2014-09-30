@@ -3,14 +3,11 @@ package edu.temple.soundgram;
 import java.io.File;
 
 import android.app.Activity;
-import android.content.ContentResolver;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
@@ -57,7 +54,11 @@ public class MainActivity extends Activity {
 		
 		Intent pictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 		
-		File photo = new File(Environment.getExternalStorageDirectory(),  "Pic.jpg"); // Temporary file name
+		File storageDirectory = new File(Environment.getExternalStorageDirectory() + "/" + getString(R.string.app_name));
+		
+		storageDirectory.mkdir();
+		
+		File photo = new File(storageDirectory,  "Pic.jpg"); // Temporary file name
 		pictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
 				Uri.fromFile(photo));
 		
@@ -72,34 +73,14 @@ public class MainActivity extends Activity {
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (resultCode == Activity.RESULT_OK && requestCode == TAKE_PICTURE_REQUEST_CODE) {
 			
-			
 			ImageView imageView = new ImageView(this);
 			
-			LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(200, 200); // Set our image view to thumbnail size
+			LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(600, 600); // Set our image view to thumbnail size
 
 			imageView.setLayoutParams(lp);
-
-			LinearLayout ll = new LinearLayout(this);
-			ll.setOrientation(LinearLayout.HORIZONTAL);
-
+			
+			imageView.setImageURI(imageUri);
 			ll.addView(imageView);
-			
-			
-			ContentResolver cr = getContentResolver();
-			Bitmap bitmap;
-			try {
-				bitmap = android.provider.MediaStore.Images.Media
-						.getBitmap(cr, imageUri);
-
-				imageView.setImageBitmap(bitmap);
-				Toast.makeText(this, imageUri.toString(),
-						Toast.LENGTH_LONG).show();
-			} catch (Exception e) {
-				Toast.makeText(this, "Could not load image", Toast.LENGTH_LONG)
-				.show();
-				e.printStackTrace();
-			}
-			
 		}	
 	}
 }
