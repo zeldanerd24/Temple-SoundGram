@@ -84,6 +84,10 @@ public class MainActivity extends Activity {
 
 			ImageLoader.getInstance().displayImage(imageUri.toString(), imageView);
 			addViewToStream(imageView);
+			
+			Intent audioIntent = new Intent(this, RecordAudio.class);
+			startActivity(audioIntent);
+			
 		}
 		
 	}
