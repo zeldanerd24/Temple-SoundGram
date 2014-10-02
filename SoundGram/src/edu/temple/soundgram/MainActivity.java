@@ -2,6 +2,8 @@ package edu.temple.soundgram;
 
 import java.io.File;
 
+import com.nostra13.universalimageloader.core.ImageLoader;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
@@ -10,6 +12,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -58,7 +61,7 @@ public class MainActivity extends Activity {
 		
 		storageDirectory.mkdir();
 		
-		File photo = new File(storageDirectory,  "Pic.jpg"); // Temporary file name
+		File photo = new File(storageDirectory, String.valueOf(System.currentTimeMillis()) + ".jpg"); // Temporary file name
 		pictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
 				Uri.fromFile(photo));
 		
@@ -78,10 +81,16 @@ public class MainActivity extends Activity {
 			LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(600, 600); // Set our image view to thumbnail size
 
 			imageView.setLayoutParams(lp);
-			
-			imageView.setImageURI(imageUri);
-			ll.addView(imageView);
-		}	
+
+			ImageLoader.getInstance().displayImage(imageUri.toString(), imageView);
+			addViewToStream(imageView);
+		}
+		
+	}
+	
+	
+	private void addViewToStream(View view){
+		ll.addView(view);
 	}
 }
 
