@@ -1,11 +1,14 @@
 package edu.temple.soundgram;
 
 import java.io.File;
+import java.io.IOException;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 
+import edu.temple.soundgram.util.API;
 import android.app.Activity;
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -18,8 +21,14 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
+	
+	int userId = 111;
+	
 
 	int TAKE_PICTURE_REQUEST_CODE = 11111111;
+	int RECORD_AUDIO_REQUEST_CODE = 11111112;
+	
+	File photo, audio;
 	
 	LinearLayout ll;
 	
@@ -61,7 +70,7 @@ public class MainActivity extends Activity {
 		
 		storageDirectory.mkdir();
 		
-		File photo = new File(storageDirectory, String.valueOf(System.currentTimeMillis()) + ".jpg"); // Temporary file name
+		photo = new File(storageDirectory, String.valueOf(System.currentTimeMillis()) + ".jpg"); // Temporary file name
 		pictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
 				Uri.fromFile(photo));
 		
@@ -70,26 +79,62 @@ public class MainActivity extends Activity {
 		
 		Toast.makeText(this, "Creating new SoundGram", Toast.LENGTH_LONG).show();
 	}
-	
+	ImageView imageView;
 	
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (resultCode == Activity.RESULT_OK && requestCode == TAKE_PICTURE_REQUEST_CODE) {
 			
-			ImageView imageView = new ImageView(this);
+			imageView = new ImageView(this);
 			
 			LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(600, 600); // Set our image view to thumbnail size
 
 			imageView.setLayoutParams(lp);
 
 			ImageLoader.getInstance().displayImage(imageUri.toString(), imageView);
-			addViewToStream(imageView);
+			getAudioClip();
 			
-			Intent audioIntent = new Intent(this, RecordAudio.class);
-			startActivity(audioIntent);
 			
+		} else if (resultCode == Activity.RESULT_OK && requestCode == RECORD_AUDIO_REQUEST_CODE){
+			
+			imageView.setOnClickListener(new View.OnClickListener() {
+				
+				@Override
+				public void onClick(View v) {
+					MediaPlayer mPlayer = new MediaPlayer();
+			        try {
+			            mPlayer.setDataSource(audio.toString());
+			            mPlayer.prepare();
+			            mPlayer.start();
+			        } catch (IOException e) {
+			            e.printStackTrace();
+			        }
+					
+				}
+			});
+			
+			//addViewToStream(imageView);
+			
+			//Inside thread
+			
+			try {
+				API.uploadSoundGram(this, userId, photo.getAbsoluteFile(), audio.getAbsoluteFile(), String.valueOf(System.currentTimeMillis()));
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
+	}
+	
+	private void getAudioClip(){
+		Intent audioIntent = new Intent(this, RecordAudio.class);
+		File storageDirectory = new File(Environment.getExternalStorageDirectory() + "/" + getString(R.string.app_name));
+		audio = new File(storageDirectory, String.valueOf(System.currentTimeMillis())); // Temporary file name
+		
+		audioIntent.putExtra("fileName", audio.getAbsolutePath());
+		
+		startActivityForResult(audioIntent, RECORD_AUDIO_REQUEST_CODE);
 	}
 	
 	
