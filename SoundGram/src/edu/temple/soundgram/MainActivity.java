@@ -5,7 +5,7 @@ import java.io.IOException;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 
-import edu.temple.soundgram.util.API;
+import edu.temple.soundgram.util.UploadSoundGramService;
 import android.app.Activity;
 import android.content.Intent;
 import android.media.MediaPlayer;
@@ -115,14 +115,7 @@ public class MainActivity extends Activity {
 			
 			//addViewToStream(imageView);
 			
-			//Inside thread
-			
-			try {
-				API.uploadSoundGram(this, userId, photo.getAbsoluteFile(), audio.getAbsoluteFile(), String.valueOf(System.currentTimeMillis()));
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			uploadSoundGram();
 		}
 		
 	}
@@ -140,6 +133,17 @@ public class MainActivity extends Activity {
 	
 	private void addViewToStream(View view){
 		ll.addView(view);
+	}
+	
+	private void uploadSoundGram(){
+		
+		Intent uploadSoundGramIntent = new Intent(this, UploadSoundGramService.class);
+		uploadSoundGramIntent.putExtra(UploadSoundGramService.directory, Environment.getExternalStorageDirectory() + "/" + getString(R.string.app_name));
+		uploadSoundGramIntent.putExtra(UploadSoundGramService.image, photo.getAbsolutePath());
+		uploadSoundGramIntent.putExtra(UploadSoundGramService.audio, audio.getAbsolutePath());
+
+		startService(uploadSoundGramIntent);
+		Toast.makeText(this, "Uploading SoundGram", Toast.LENGTH_SHORT).show();
 	}
 }
 
