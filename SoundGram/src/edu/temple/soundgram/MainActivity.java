@@ -16,6 +16,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -26,8 +27,10 @@ import android.provider.MediaStore;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TableLayout;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
@@ -166,6 +169,14 @@ public class MainActivity extends Activity {
 	
 	private void addViewToStream(View view){
 		ll.addView(view);
+		
+		
+		View seperatorLine = new View(this);
+        TableLayout.LayoutParams layoutParams = new TableLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1);
+        layoutParams.setMargins(30,30,30,30);
+        seperatorLine.setLayoutParams(layoutParams);
+        seperatorLine.setBackgroundColor(Color.rgb(180, 180, 180));
+        ll.addView(seperatorLine);
 	}
 	
 	private void uploadSoundGram(){
