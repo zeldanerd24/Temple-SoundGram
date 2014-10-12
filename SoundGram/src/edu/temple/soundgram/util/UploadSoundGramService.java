@@ -19,6 +19,7 @@ public class UploadSoundGramService extends IntentService {
 	
 	public static final String image = "image", audio = "audio", directory = "directory", description = "descriptionKey",
 			visibilityKey = "visibility";
+	public static final String REFRESH_ACTION = "refreshStream";
 	
 
 	public UploadSoundGramService(){
@@ -49,9 +50,9 @@ public class UploadSoundGramService extends IntentService {
 				deleteRecursive(new File(intent.getStringExtra(directory)));
 			}
 			
-			// Broadcast completion to refresh streams.
-			//Intent refreshIntent = new Intent().setAction(HomeActivity.REFRESH_ALBUM_BROADCAST_ACTION);
-			//sendBroadcast(refreshIntent);
+			//Broadcast completion to refresh streams.
+			Intent refreshIntent = new Intent().setAction(REFRESH_ACTION);
+			sendBroadcast(refreshIntent);
 			
 			
 		} catch (Exception e){

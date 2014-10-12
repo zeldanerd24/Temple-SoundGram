@@ -3,8 +3,13 @@ package edu.temple.soundgram;
 import java.io.File;
 import java.io.IOException;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.nostra13.universalimageloader.core.ImageLoader;
 
+import edu.temple.soundgram.util.API;
 import edu.temple.soundgram.util.UploadSoundGramService;
 import android.app.Activity;
 import android.content.Intent;
@@ -12,6 +17,8 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.MediaStore;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -40,8 +47,9 @@ public class MainActivity extends Activity {
 		
 		ll = (LinearLayout) findViewById(R.id.imageLinearLayout);
 		
+		loadStream();
+		
 	}
-	
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -55,6 +63,8 @@ public class MainActivity extends Activity {
 		case R.id.new_soundgram:
 			newSoundGram();
 			return true;
+		case R.id.load_soundgram:
+			loadStream();
 		default:
 			return super.onOptionsItemSelected(item);
 		}
@@ -145,6 +155,81 @@ public class MainActivity extends Activity {
 		startService(uploadSoundGramIntent);
 		Toast.makeText(this, "Uploading SoundGram", Toast.LENGTH_SHORT).show();
 	}
+	
+	private void loadStream(){
+		
+		Thread t = new Thread(){
+			@Override
+			public void run(){
+				try {
+					JSONArray streamArray = API.getSoundGrams(MainActivity.this, userId);
+					
+					Message msg = Message.obtain();
+					msg.obj = streamArray;
+					
+					displayStreamHandler.sendMessage(msg);
+				} catch (Exception e) {
+				}
+			}
+		};
+		t.start();
+		
+	}
+	
+	Handler displayStreamHandler = new Handler(new Handler.Callback() {
+		
+		@Override
+		public boolean handleMessage(Message msg) {
+			
+			
+			JSONArray streamArray = (JSONArray) msg.obj;
+			if (streamArray != null) {
+				ll.removeAllViews();
+				for (int i = 0; i < streamArray.length(); i++){
+					try {
+						addViewToStream(getSoundGramView(streamArray.getJSONObject(i)));
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			return false;
+		}
+	});
+	
+	private View getSoundGramView(final JSONObject soundgramObject){
+		LinearLayout soundgramLayout = new LinearLayout(this);
+		
+		
+		ImageView soundgramImageView = new ImageView(this);
+		LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(600, 600); // Set our image view to thumbnail size
+		soundgramImageView.setLayoutParams(lp);
+		try {
+			ImageLoader.getInstance().displayImage(soundgramObject.getString("image_url"), soundgramImageView);
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+		}
+		
+		soundgramImageView.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				MediaPlayer mPlayer = new MediaPlayer();
+		        try {
+		            mPlayer.setDataSource(soundgramObject.getString("audio_url"));
+		            mPlayer.prepare();
+		            mPlayer.start();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		
+		soundgramLayout.addView(soundgramImageView);
+		
+		return soundgramLayout;
+	}
+	
 }
 
 
