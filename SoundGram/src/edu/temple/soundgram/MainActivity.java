@@ -12,7 +12,10 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import edu.temple.soundgram.util.API;
 import edu.temple.soundgram.util.UploadSoundGramService;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -40,15 +43,35 @@ public class MainActivity extends Activity {
 	LinearLayout ll;
 	
 	
+	// Refresh stream
+	private BroadcastReceiver refreshReceiver = new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+        	if (intent.getAction().equals(UploadSoundGramService.REFRESH_ACTION)){
+        		try {
+        			loadStream();
+        		} catch (Exception e) {}
+        	}
+        }
+	};
+	
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
+		
+		// Register listener for messages received while app is in foreground
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(UploadSoundGramService.REFRESH_ACTION);
+        registerReceiver(refreshReceiver, filter);
+		
+		
 		ll = (LinearLayout) findViewById(R.id.imageLinearLayout);
 		
 		loadStream();
-		
 	}
 	
 	@Override
@@ -228,6 +251,12 @@ public class MainActivity extends Activity {
 		soundgramLayout.addView(soundgramImageView);
 		
 		return soundgramLayout;
+	}
+	
+	@Override
+	public void onDestroy(){
+		super.onDestroy();
+		unregisterReceiver(refreshReceiver);
 	}
 	
 }
