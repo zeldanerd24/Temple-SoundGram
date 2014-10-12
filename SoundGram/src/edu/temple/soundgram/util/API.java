@@ -187,7 +187,7 @@ static final String APIBaseURL = "http://kamorris.com/soundgram/api/";
         try {
             JSONObject responseObject = new JSONObject(response);
             if (responseObject.getString("status").equalsIgnoreCase("ok")){
-                return responseObject.getJSONArray("soundstreams");
+                return responseObject.getJSONArray("soundgrams");
             }
         } catch (JSONException e) {
             Log.i("JSON Error in: ", response);
