@@ -33,11 +33,14 @@ public class UploadSoundGramService extends IntentService {
 	@Override
 	protected void onHandleIntent(Intent intent) {
 		try {
+
+            File audioFile = new File(intent.getStringExtra("audio"));
+            File imageFile = new File(intent.getStringExtra("image"));
 			
 			boolean status = API.uploadSoundGram(this, 
 					1111,
-					new File(intent.getStringExtra(image)), 
-					new File(intent.getStringExtra(audio)), 
+					imageFile,
+					audioFile,
 					"No description");
 			
 			if (status) {
@@ -47,7 +50,8 @@ public class UploadSoundGramService extends IntentService {
 						MainActivity.class.getName());
 			
 				// Delete local copy
-				deleteRecursive(new File(intent.getStringExtra(directory)));
+                deleteRecursive(audioFile);
+                deleteRecursive(imageFile);
 			}
 			
 			//Broadcast completion to refresh streams.
@@ -64,6 +68,7 @@ public class UploadSoundGramService extends IntentService {
 	    if (fileOrDirectory.isDirectory())
 	        for (File child : fileOrDirectory.listFiles())
 	            deleteRecursive(child);
+        fileOrDirectory.delete();
 	}
 	
 	public static void createNotification(Context context, String title, String text, String mClass){
