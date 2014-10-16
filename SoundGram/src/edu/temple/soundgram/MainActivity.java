@@ -1,7 +1,13 @@
 package edu.temple.soundgram;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -40,6 +46,7 @@ public class MainActivity extends Activity {
 
 	int TAKE_PICTURE_REQUEST_CODE = 11111111;
 	int RECORD_AUDIO_REQUEST_CODE = 11111112;
+    String cacheLocation = Environment.getExternalStorageDirectory() + "/soundgram/cache";
 	
 	File photo, audio;
 	
@@ -64,6 +71,17 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+
+        File cache = new File(cacheLocation);
+        if(!cache.exists()) {
+            if(!cache.mkdir()) {
+                try {
+                    throw new Exception("Cache folder not created");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
 		
 		
 		// Register listener for messages received while app is in foreground
@@ -250,7 +268,50 @@ public class MainActivity extends Activity {
 			public void onClick(View v) {
 				MediaPlayer mPlayer = new MediaPlayer();
 		        try {
-		            mPlayer.setDataSource(soundgramObject.getString("audio_url"));
+                    final String audio_url = soundgramObject.getString("audio_url");
+                    final String audio_name = audio_url.substring(audio_url.lastIndexOf("=")+1, audio_url.length());
+
+                    File cacheFolder = new File(cacheLocation);
+                    if(cacheFolder.exists() && cacheFolder.isDirectory()) {
+                        final File soundFile = new File(cacheLocation + "/" + audio_name);
+                        if(soundFile.exists()) {
+                            System.out.println("Loaded From Cache");
+                            mPlayer.setDataSource(soundFile.getPath());
+                        } else {
+                            Runnable runnable = new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        URL u = new URL(audio_url);
+                                        HttpURLConnection c = (HttpURLConnection) u.openConnection();
+                                        c.setRequestMethod("GET");
+                                        c.setDoOutput(true);
+                                        c.connect();
+                                        FileOutputStream f = new FileOutputStream(soundFile);
+
+
+                                        InputStream in = c.getInputStream();
+
+                                        byte[] buffer = new byte[1024];
+                                        int len1;
+                                        while ( (len1 = in.read(buffer)) > 0 ) {
+                                            f.write(buffer,0, len1);
+                                        }
+                                        f.close();
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+
+                                }
+                            };
+                            Thread thread = new Thread(runnable);
+                            thread.start();
+                            mPlayer.setDataSource(audio_url);
+                        }
+                    } else {
+                        throw new Exception("Cache folder not created");
+                    }
+
 		            mPlayer.prepare();
 		            mPlayer.start();
 				} catch (Exception e) {
